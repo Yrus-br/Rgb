@@ -69,40 +69,31 @@ class SettingsViewController: UIViewController {
         switch sender {
         case redTextField:
             let redTFvalue = Float(redTextField.text!) ?? 0.0
+            redSlider.setValue(redTFvalue, animated: true)
             
             if redTFvalue > 1 || redTextField.text == "" {
                 wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
             }
             
-            redSlider.setValue(redTFvalue, animated: true)
-            setColor()
-            setValueToLabel()
-            setValueToTF()
-            
         case greenTextField:
             let greenTFvalue = Float(greenTextField.text!) ?? 0.0
+            greenSlider.setValue(greenTFvalue, animated: true)
             
             if greenTFvalue > 1 || greenTextField.text == ""{
                 wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
             }
             
-            greenSlider.setValue(greenTFvalue, animated: true)
-            setColor()
-            setValueToLabel()
-            setValueToTF()
-            
         default:
             let blueTFvalue = Float(blueTextField.text!) ?? 0.0
+            blueSlider.setValue(blueTFvalue, animated: true)
             
             if blueTFvalue > 1 || blueTextField.text == "" {
                 wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
             }
-            
-            blueSlider.setValue(blueTFvalue, animated: true)
-            setColor()
-            setValueToLabel()
-            setValueToTF()
         }
+        setColor()
+        setValueToLabel()
+        setValueToTF()
     }
     
     // MARK: methods
