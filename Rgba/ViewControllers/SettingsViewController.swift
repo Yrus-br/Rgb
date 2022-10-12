@@ -34,9 +34,17 @@ class SettingsViewController: UIViewController {
         colorView.layer.cornerRadius = 30
         setSliderValue()
         setColor()
-        setValue()
-        
+        setValueToTF()
+        setValueToLabel()
+        addDoneButtonToTF()
     }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        view.endEditing(true)
+    }
+    
+    // MARK: IBactions
     
     @IBAction func doneButtonPressed() {
         dismiss(animated: true)
@@ -47,12 +55,61 @@ class SettingsViewController: UIViewController {
         switch sender {
         case redSlider:
             redLabel.text = string(from: sender)
+            redTextField.text = string(from: sender)
         case greenSlider:
             greenLabel.text = string(from: sender)
+            greenTextField.text = string(from: sender)
         default:
             blueLabel.text = string(from: sender)
+            blueTextField.text = string(from: sender)
         }
     }
+    
+    @IBAction func textFieldAction(_ sender: UITextField) {
+        switch sender {
+        case redTextField:
+            let redTFvalue = Float(redTextField.text!) ?? 0.0
+            if redTFvalue > 1 {
+                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
+                redTextField.text = "1.00"
+            } else if redTextField.text == "" {
+                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
+                redTextField.text = "0.00"
+            }
+            redSlider.setValue(redTFvalue, animated: true)
+            setColor()
+            redLabel.text = String(format: "%.2f", redTFvalue < 1 ? redTFvalue : redSlider.value)
+        case greenTextField:
+            let greenTFvalue = Float(greenTextField.text!) ?? 0.0
+            if greenTFvalue > 1 {
+                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
+                greenTextField.text = "1.00"
+            } else if greenTextField.text == "" {
+                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
+                greenTextField.text = "0.00"
+            }
+            greenSlider.setValue(greenTFvalue, animated: true)
+            setColor()
+            greenLabel.text = String(format: "%.2f", greenTFvalue < 1 ? greenTFvalue : greenSlider.value)
+        default:
+            let blueTFvalue = Float(blueTextField.text!) ?? 0.0
+            
+            if blueTFvalue > 1 {
+                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
+                blueTextField.text = "1.00"
+            } else if blueTextField.text == "" {
+                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
+                blueTextField.text = "0.00"
+            }
+            
+            blueSlider.setValue(blueTFvalue, animated: true)
+            setColor()
+            blueLabel.text = String(format: "%.2f", blueTFvalue < 1 ? blueTFvalue : blueSlider.value)
+            return
+        }
+    }
+    
+    // MARK: methods
     
     func setColor() {
         let colorForView = UIColor(
@@ -65,11 +122,18 @@ class SettingsViewController: UIViewController {
         delegate?.setBackgroundColor(to: colorForView)
     }
     
-    private func setValue() {
+    private func addDoneButtonToTF() {
+        redTextField.addDoneButtonToKeyboard(action:  #selector(redTextField.resignFirstResponder))
+        greenTextField.addDoneButtonToKeyboard(action:  #selector(greenTextField.resignFirstResponder))
+        blueTextField.addDoneButtonToKeyboard(action:  #selector(blueTextField.resignFirstResponder))
+    }
+    private func setValueToLabel() {
         redLabel.text = string(from: redSlider)
         greenLabel.text = string(from: greenSlider)
         blueLabel.text = string(from: blueSlider)
-        
+    }
+    
+    private func setValueToTF() {
         redTextField.text = string(from: redSlider)
         greenTextField.text = string(from: greenSlider)
         blueTextField.text = string(from: blueSlider)
@@ -77,7 +141,6 @@ class SettingsViewController: UIViewController {
     
     private func setSliderValue() {
         let sligerColor = CIColor(color: updatedColor)
-        
         redSlider.value = Float(sligerColor.red)
         greenSlider.value = Float(sligerColor.green)
         blueSlider.value = Float(sligerColor.blue)
@@ -87,4 +150,47 @@ class SettingsViewController: UIViewController {
     private func string(from slider: UISlider) -> String {
         String(format: "%.2f", slider.value)
     }
+    
+    private func stringForTf(from textField: UITextField) -> String {
+        String(format: "%.2f", textField)
+    }
+    
+    private func wrongFormat(
+        title: String,
+        message: String,
+        textField: UITextField? = nil
+    )
+    {
+        let message = UIAlertController(
+            title: title,
+            message: message,
+            preferredStyle: .alert
+        )
+        let okButton = UIAlertAction(title: "OK", style: .default) { _ in
+            textField?.text = ""
+        }
+        message.addAction(okButton)
+        present(message, animated: true)
+    }
+}
+
+// MARK: extensions
+
+extension UITextField{
+ func addDoneButtonToKeyboard(action:Selector?) {
+    let doneToolbar: UIToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 300, height: 40))
+    doneToolbar.barStyle = UIBarStyle.default
+
+     let flexSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
+     let done: UIBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.done, target: self, action: action)
+
+    var items = [UIBarButtonItem]()
+    items.append(flexSpace)
+    items.append(done)
+
+    doneToolbar.items = items
+    doneToolbar.sizeToFit()
+
+    self.inputAccessoryView = doneToolbar
+ }
 }
