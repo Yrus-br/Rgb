@@ -9,7 +9,6 @@ import UIKit
 
 class SettingsViewController: UIViewController {
     
-    
     @IBOutlet weak var colorView: UIView!
     
     @IBOutlet weak var redLabel: UILabel!
@@ -25,13 +24,14 @@ class SettingsViewController: UIViewController {
     @IBOutlet var greenTextField: UITextField!
     @IBOutlet var blueTextField: UITextField!
     
-    var delegate: NewColorForBackground!
+    var delegate: NewColorDelegate!
     var updatedColor: UIColor!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         colorView.layer.cornerRadius = 30
+        
         setSliderValue()
         setColor()
         setValueToTF()
@@ -69,43 +69,39 @@ class SettingsViewController: UIViewController {
         switch sender {
         case redTextField:
             let redTFvalue = Float(redTextField.text!) ?? 0.0
-            if redTFvalue > 1 {
+            
+            if redTFvalue > 1 || redTextField.text == "" {
                 wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
-                redTextField.text = "1.00"
-            } else if redTextField.text == "" {
-                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
-                redTextField.text = "0.00"
             }
+            
             redSlider.setValue(redTFvalue, animated: true)
             setColor()
-            redLabel.text = String(format: "%.2f", redTFvalue < 1 ? redTFvalue : redSlider.value)
+            setValueToLabel()
+            setValueToTF()
+            
         case greenTextField:
             let greenTFvalue = Float(greenTextField.text!) ?? 0.0
-            if greenTFvalue > 1 {
+            
+            if greenTFvalue > 1 || greenTextField.text == ""{
                 wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
-                greenTextField.text = "1.00"
-            } else if greenTextField.text == "" {
-                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
-                greenTextField.text = "0.00"
             }
+            
             greenSlider.setValue(greenTFvalue, animated: true)
             setColor()
-            greenLabel.text = String(format: "%.2f", greenTFvalue < 1 ? greenTFvalue : greenSlider.value)
+            setValueToLabel()
+            setValueToTF()
+            
         default:
             let blueTFvalue = Float(blueTextField.text!) ?? 0.0
             
-            if blueTFvalue > 1 {
+            if blueTFvalue > 1 || blueTextField.text == "" {
                 wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
-                blueTextField.text = "1.00"
-            } else if blueTextField.text == "" {
-                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
-                blueTextField.text = "0.00"
             }
             
             blueSlider.setValue(blueTFvalue, animated: true)
             setColor()
-            blueLabel.text = String(format: "%.2f", blueTFvalue < 1 ? blueTFvalue : blueSlider.value)
-            return
+            setValueToLabel()
+            setValueToTF()
         }
     }
     
@@ -123,10 +119,17 @@ class SettingsViewController: UIViewController {
     }
     
     private func addDoneButtonToTF() {
-        redTextField.addDoneButtonToKeyboard(action:  #selector(redTextField.resignFirstResponder))
-        greenTextField.addDoneButtonToKeyboard(action:  #selector(greenTextField.resignFirstResponder))
-        blueTextField.addDoneButtonToKeyboard(action:  #selector(blueTextField.resignFirstResponder))
+        redTextField.addDoneButtonToKeyboard(
+            action:#selector(redTextField.resignFirstResponder)
+        )
+        greenTextField.addDoneButtonToKeyboard(
+            action:  #selector(greenTextField.resignFirstResponder)
+        )
+        blueTextField.addDoneButtonToKeyboard(
+            action:  #selector(blueTextField.resignFirstResponder)
+        )
     }
+    
     private func setValueToLabel() {
         redLabel.text = string(from: redSlider)
         greenLabel.text = string(from: greenSlider)
@@ -151,10 +154,6 @@ class SettingsViewController: UIViewController {
         String(format: "%.2f", slider.value)
     }
     
-    private func stringForTf(from textField: UITextField) -> String {
-        String(format: "%.2f", textField)
-    }
-    
     private func wrongFormat(
         title: String,
         message: String,
@@ -176,21 +175,37 @@ class SettingsViewController: UIViewController {
 
 // MARK: extensions
 
-extension UITextField{
- func addDoneButtonToKeyboard(action:Selector?) {
-    let doneToolbar: UIToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 300, height: 40))
-    doneToolbar.barStyle = UIBarStyle.default
-
-     let flexSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
-     let done: UIBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.done, target: self, action: action)
-
-    var items = [UIBarButtonItem]()
-    items.append(flexSpace)
-    items.append(done)
-
-    doneToolbar.items = items
-    doneToolbar.sizeToFit()
-
-    self.inputAccessoryView = doneToolbar
- }
+extension UITextField {
+    func addDoneButtonToKeyboard(action:Selector?) {
+        let doneToolbar: UIToolbar = UIToolbar(
+            frame:
+                CGRect(
+                    x: 0,
+                    y: 0,
+                    width: 300,
+                    height: 40
+                )
+        )
+        
+        doneToolbar.barStyle = UIBarStyle.default
+        
+        let flexSpace = UIBarButtonItem(
+            barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace,
+            target: nil, action: nil
+        )
+        let done: UIBarButtonItem = UIBarButtonItem(
+            title: "Done",
+            style: UIBarButtonItem.Style.done,
+            target: self, action: action
+        )
+        
+        var items = [UIBarButtonItem]()
+        items.append(flexSpace)
+        items.append(done)
+        
+        doneToolbar.items = items
+        doneToolbar.sizeToFit()
+        
+        self.inputAccessoryView = doneToolbar
+    }
 }

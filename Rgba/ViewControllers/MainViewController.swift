@@ -7,8 +7,11 @@
 
 import UIKit
 
+protocol NewColorDelegate {
+    func setBackgroundColor(to color: UIColor)
+}
+
 class MainViewController: UIViewController {
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,7 +24,7 @@ class MainViewController: UIViewController {
     }
 }
 
-extension MainViewController: NewColorForBackground {
+extension MainViewController: NewColorDelegate {
     func setBackgroundColor(to color: UIColor) {
         view.backgroundColor = color
     }
