@@ -9,6 +9,7 @@ import UIKit
 
 class SettingsViewController: UIViewController {
     
+    // MARK: IBOutlets
     @IBOutlet weak var colorView: UIView!
     
     @IBOutlet weak var redLabel: UILabel!
@@ -24,19 +25,20 @@ class SettingsViewController: UIViewController {
     @IBOutlet var greenTextField: UITextField!
     @IBOutlet var blueTextField: UITextField!
     
+    //MARK: Public properties
     var delegate: NewColorDelegate!
     var updatedColor: UIColor!
     
+    //MARK: View life cicle
     override func viewDidLoad() {
         super.viewDidLoad()
         
         colorView.layer.cornerRadius = 30
+        colorView.backgroundColor = updatedColor
         
-        setSliderValue()
-        setColor()
-        setValueToTF()
-        setValueToLabel()
-        addDoneButtonToTF()
+        setValue(for: redLabel, greenLabel, blueLabel)
+        setValue(for: redSlider, greenSlider, blueSlider)
+        setValue(for: redTextField, greenTextField, blueTextField)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -47,77 +49,32 @@ class SettingsViewController: UIViewController {
     // MARK: IBactions
     
     @IBAction func doneButtonPressed() {
+        delegate.setBackgroundColor(to: colorView.backgroundColor ?? .white)
         dismiss(animated: true)
     }
     
     @IBAction func sliderAction(_ sender: UISlider) {
-        setColor()
         switch sender {
         case redSlider:
-            redLabel.text = string(from: sender)
-            redTextField.text = string(from: sender)
+            setValue(for: redLabel)
+            setValue(for: redTextField)
         case greenSlider:
-            greenLabel.text = string(from: sender)
-            greenTextField.text = string(from: sender)
+            setValue(for: greenLabel)
+            setValue(for: greenTextField)
         default:
-            blueLabel.text = string(from: sender)
-            blueTextField.text = string(from: sender)
-        }
-    }
-    
-    @IBAction func textFieldAction(_ sender: UITextField) {
-        switch sender {
-        case redTextField:
-            let redTFvalue = Float(redTextField.text!) ?? 0.0
-            redSlider.setValue(redTFvalue, animated: true)
-            
-            if redTFvalue > 1 || redTextField.text == "" {
-                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
-            }
-            
-        case greenTextField:
-            let greenTFvalue = Float(greenTextField.text!) ?? 0.0
-            greenSlider.setValue(greenTFvalue, animated: true)
-            
-            if greenTFvalue > 1 || greenTextField.text == ""{
-                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
-            }
-            
-        default:
-            let blueTFvalue = Float(blueTextField.text!) ?? 0.0
-            blueSlider.setValue(blueTFvalue, animated: true)
-            
-            if blueTFvalue > 1 || blueTextField.text == "" {
-                wrongFormat(title: "Wrong Format!", message: "Plese enter the correct value")
-            }
+            setValue(for: blueLabel)
+            setValue(for: blueTextField)
         }
         setColor()
-        setValueToLabel()
-        setValueToTF()
     }
     
     // MARK: methods
-    
-    func setColor() {
-        let colorForView = UIColor(
+    private func setColor() {
+        colorView.backgroundColor = UIColor(
             red: CGFloat(redSlider.value),
             green: CGFloat(greenSlider.value),
             blue: CGFloat(blueSlider.value),
             alpha: 1
-        )
-        colorView.backgroundColor = colorForView
-        delegate?.setBackgroundColor(to: colorForView)
-    }
-    
-    private func addDoneButtonToTF() {
-        redTextField.addDoneButtonToKeyboard(
-            action:#selector(redTextField.resignFirstResponder)
-        )
-        greenTextField.addDoneButtonToKeyboard(
-            action:  #selector(greenTextField.resignFirstResponder)
-        )
-        blueTextField.addDoneButtonToKeyboard(
-            action:  #selector(blueTextField.resignFirstResponder)
         )
     }
     
@@ -145,58 +102,91 @@ class SettingsViewController: UIViewController {
         String(format: "%.2f", slider.value)
     }
     
-    private func wrongFormat(
+    private func showAlert(
         title: String,
         message: String,
         textField: UITextField? = nil
     )
     {
-        let message = UIAlertController(
-            title: title,
-            message: message,
-            preferredStyle: .alert
-        )
-        let okButton = UIAlertAction(title: "OK", style: .default) { _ in
-            textField?.text = ""
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let OKaction = UIAlertAction(title: "OK", style: .default) { _ in
+            textField?.text = "1.00"
+            textField?.becomeFirstResponder()
         }
-        message.addAction(okButton)
-        present(message, animated: true)
+        alert.addAction(OKaction)
+        present(alert, animated: true)
+    }
+    
+    private func setValue(for colorSliders: UISlider...) {
+        let ciColor = CIColor(color: updatedColor)
+        colorSliders.forEach { slider in
+            switch slider {
+            case redSlider: redSlider.value = Float(ciColor.red)
+            case greenSlider: greenSlider.value = Float(ciColor.green)
+            default: blueSlider.value = Float(ciColor.blue)
+            }
+        }
+    }
+    
+    private func setValue(for textFields: UITextField...) {
+        textFields.forEach { textField in
+            switch textField {
+            case redTextField: textField.text = string(from: redSlider)
+            case greenTextField: textField.text = string(from: greenSlider)
+            default: textField.text = string(from: blueSlider)
+            }
+        }
+    }
+    
+    private func setValue(for colorLabels: UILabel...) {
+        colorLabels.forEach { label in
+            switch label {
+            case redLabel: label.text = string(from: redSlider)
+            case greenLabel: label.text = string(from: greenSlider)
+            default: label.text = string(from: blueSlider)
+            }
+        }
     }
 }
 
+
 // MARK: extensions
 
-extension UITextField {
-    func addDoneButtonToKeyboard(action:Selector?) {
-        let doneToolbar: UIToolbar = UIToolbar(
-            frame:
-                CGRect(
-                    x: 0,
-                    y: 0,
-                    width: 300,
-                    height: 40
-                )
+extension SettingsViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        guard let text = textField.text else {
+            showAlert(title: "Wrong format", message: "Plese enter the correct number")
+            return
+        }
+        guard let currentValue = Float(text), (0...1).contains(currentValue) else {
+            showAlert(
+                title: "Wrong format",
+                message: "Plese enter the correct number",
+                textField: textField
+            )
+            return
+        }
+    }
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        let keyboardToolBar = UIToolbar()
+        keyboardToolBar.sizeToFit()
+        
+        let doneButton = UIBarButtonItem(
+            barButtonSystemItem: .done,
+            target: textField,
+            action: #selector(resignFirstResponder)
         )
         
-        doneToolbar.barStyle = UIBarStyle.default
+        let flexButtonSpace = UIBarButtonItem(
+            barButtonSystemItem: .flexibleSpace,
+            target: nil,
+            action: nil)
         
-        let flexSpace = UIBarButtonItem(
-            barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace,
-            target: nil, action: nil
-        )
-        let done: UIBarButtonItem = UIBarButtonItem(
-            title: "Done",
-            style: UIBarButtonItem.Style.done,
-            target: self, action: action
-        )
-        
-        var items = [UIBarButtonItem]()
-        items.append(flexSpace)
-        items.append(done)
-        
-        doneToolbar.items = items
-        doneToolbar.sizeToFit()
-        
-        self.inputAccessoryView = doneToolbar
+        keyboardToolBar.items = [flexButtonSpace, doneButton]
     }
 }
