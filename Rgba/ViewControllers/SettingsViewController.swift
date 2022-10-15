@@ -170,11 +170,27 @@ extension SettingsViewController: UITextFieldDelegate {
             )
             return
         }
+        
+        switch textField {
+        case redTextField:
+            redSlider.setValue(currentValue, animated: true)
+            setValue(for: redLabel)
+        case greenTextField:
+            greenSlider.setValue(currentValue, animated: true)
+            setValue(for: greenLabel)
+        default:
+            blueSlider.setValue(currentValue, animated: true)
+            setValue(for: blueLabel)
+        }
+        
+        setColor()
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
         let keyboardToolBar = UIToolbar()
         keyboardToolBar.sizeToFit()
+        
+        textField.inputAccessoryView = keyboardToolBar
         
         let doneButton = UIBarButtonItem(
             barButtonSystemItem: .done,
